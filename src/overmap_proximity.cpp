@@ -44,7 +44,7 @@ void overmap_proximity_constraint::check() const
     for( const oter_id &tid : terrains ) {
         if( !tid.is_valid() ) {
             debugmsg( "overmap proximity constraint references invalid terrain '%s'",
-                      tid.c_str() );
+                      tid.str().c_str() );
         }
     }
 }
@@ -79,7 +79,7 @@ bool overmap_proximity::satisfies( const overmap &om, const tripoint_om_omt &p )
                 if( dist < c.distance.min || dist > c.distance.max ) {
                     continue;
                 }
-                const tripoint_om_omt q( p.x + dx, p.y + dy, p.z );
+                const tripoint_om_omt q = p + tripoint( dx, dy, 0 );
                 const oter_id &tid = om.ter( q );
                 for( const oter_id &wanted : c.terrains ) {
                     if( tid == wanted ) {
