@@ -36,6 +36,7 @@
 #include "mapgen_parameter.h"
 #include "memory_fast.h"
 #include "overmap_location.h"
+#include "overmap_proximity.h" // Custom hook: proximity check
 #include "point.h"
 #include "translation.h"
 #include "type_id.h"
@@ -749,6 +750,8 @@ struct overmap_special_placement_constraints {
     numeric_interval<int> city_size{ 0, INT_MAX };
     numeric_interval<int> city_distance{ 0, INT_MAX };
     numeric_interval<int> occurrences;
+    // Custom hook: proximity check (see overmap_proximity.h)
+    overmap_proximity proximity;
 };
 
 enum class overmap_special_subtype {

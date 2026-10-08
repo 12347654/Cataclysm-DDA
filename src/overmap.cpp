@@ -3181,6 +3181,10 @@ bool overmap::place_special_attempt(
             if( !special.can_belong_to_city( p, nearest_city, *this ) ) {
                 continue;
             }
+            // Custom hook: proximity check (see overmap_proximity.h)
+            if( !special.get_constraints().proximity.satisfies( *this, p ) ) {
+                continue;
+            }
             // See if we can actually place the special there.
             const om_direction::type rotation = random_special_rotation( special, p, must_be_unexplored );
             if( rotation == om_direction::type::invalid ) {

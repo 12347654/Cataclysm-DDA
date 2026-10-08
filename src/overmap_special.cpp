@@ -344,6 +344,10 @@ void overmap_special::load( const JsonObject &jo, const std::string_view src )
         mandatory( jo, was_loaded, "occurrences", constraints_.occurrences );
         optional( jo, was_loaded, "city_distance", constraints_.city_distance, { 0, INT_MAX } );
         optional( jo, was_loaded, "priority", priority_, 0 );
+        // Custom hook: proximity check (see overmap_proximity.h)
+        if( jo.has_array( "proximity" ) ) {
+            constraints_.proximity.deserialize( jo.get_array( "proximity" ) );
+        }
     }
 
     optional( jo, was_loaded, "spawns", monster_spawns_ );
@@ -369,6 +373,8 @@ void overmap_special::finalize_mapgen_parameters()
 void overmap_special::check() const
 {
     data_->check( string_format( "overmap special %s", id.str() ) );
+    // Custom hook: proximity check (see overmap_proximity.h)
+    constraints_.proximity.check();
 }
 
 overmap_special_id overmap_specials::create_building_from( const string_id<oter_type_t> &base )
