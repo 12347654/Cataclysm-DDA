@@ -21,9 +21,9 @@
 
 #include <vector>
 
+#include "common_types.h"
 #include "coordinates.h"
 #include "json.h"
-#include "numeric_interval.h"
 #include "type_id.h"
 
 class overmap;
