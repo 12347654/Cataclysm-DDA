@@ -44,7 +44,7 @@ void overmap_proximity_constraint::check() const
     for( const oter_id &tid : terrains ) {
         if( !tid.is_valid() ) {
             debugmsg( "overmap proximity constraint references invalid terrain '%s'",
-                      tid.str().c_str() );
+                      tid.id().str().c_str() );
         }
     }
 }
