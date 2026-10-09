@@ -9,14 +9,22 @@
 void overmap_proximity_constraint::deserialize( const JsonObject &jo )
 {
     // "terrain": list of oter_id (OR logic)
+    // Use jo.read for proper deferred ID resolution
     if( jo.has_array( "terrain" ) ) {
-        for( const JsonValue jv : jo.get_array( "terrain" ) ) {
-            terrains.emplace_back( oter_id( jv.get_string() ) );
+        JsonArray ja = jo.get_array( "terrain" );
+        for( size_t i = 0; i < ja.size(); ++i ) {
+            oter_id tid;
+            if( ja.read( i, tid ) ) {
+                terrains.push_back( tid );
+            }
         }
     } else if( jo.has_string( "terrain" ) ) {
-        // Allow single string for convenience
-        terrains.emplace_back( oter_id( jo.get_string( "terrain" ) ) );
-    } else {
+        oter_id tid;
+        if( jo.read( "terrain", tid ) ) {
+            terrains.push_back( tid );
+        }
+    }
+    if( terrains.empty() ) {
         jo.throw_error( "\"proximity\" constraint requires \"terrain\" (string or array)" );
     }
 
