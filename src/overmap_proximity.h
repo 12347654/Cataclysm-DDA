@@ -29,8 +29,9 @@
 class overmap;
 
 struct overmap_proximity_constraint {
-    // Terrain IDs to look for (OR logic: match if near ANY of these)
-    std::vector<oter_id> terrains;
+    // Terrain ID strings (stored as strings to avoid load-time validation;
+    // converted to oter_id at runtime in satisfies())
+    std::vector<std::string> terrain_strs;
     // Distance range [min, max] in overmap tiles (Chebyshev distance)
     numeric_interval<int> distance{ 0, 0 };
 
