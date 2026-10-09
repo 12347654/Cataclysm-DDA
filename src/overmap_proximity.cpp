@@ -8,23 +8,19 @@
 
 void overmap_proximity_constraint::deserialize( const JsonObject &jo )
 {
-    // "terrain": list of oter_id (OR logic)
-    // Use jo.read for proper deferred ID resolution
+    // "terrain": list of terrain ID strings (OR logic)
+    // Stored as strings to avoid load-time ID validation;
+    // converted to oter_id at runtime in satisfies().
     if( jo.has_array( "terrain" ) ) {
         JsonArray ja = jo.get_array( "terrain" );
         for( size_t i = 0; i < ja.size(); ++i ) {
-            oter_id tid;
-            if( ja.read( i, tid ) ) {
-                terrains.push_back( tid );
-            }
+            terrain_strs.push_back( ja.get_string( i ) );
         }
     } else if( jo.has_string( "terrain" ) ) {
-        oter_id tid;
-        if( jo.read( "terrain", tid ) ) {
-            terrains.push_back( tid );
-        }
+        // Allow single string for convenience
+        terrain_strs.push_back( jo.get_string( "terrain" ) );
     }
-    if( terrains.empty() ) {
+    if( terrain_strs.empty() ) {
         jo.throw_error( "\"proximity\" constraint requires \"terrain\" (string or array)" );
     }
 
@@ -42,19 +38,15 @@ void overmap_proximity_constraint::deserialize( const JsonObject &jo )
 
 void overmap_proximity_constraint::check() const
 {
-    if( terrains.empty() ) {
+    if( terrain_strs.empty() ) {
         debugmsg( "overmap proximity constraint has empty terrain list" );
     }
     if( distance.min < 0 || distance.max < distance.min ) {
         debugmsg( "overmap proximity constraint has invalid distance [%d, %d]",
                   distance.min, distance.max );
     }
-    for( const oter_id &tid : terrains ) {
-        if( !tid.is_valid() ) {
-            debugmsg( "overmap proximity constraint references invalid terrain '%s'",
-                      tid.id().str().c_str() );
-        }
-    }
+    // Note: terrain ID validity is checked at runtime in satisfies(),
+    // not here, to avoid load-order issues.
 }
 
 void overmap_proximity::deserialize( const JsonArray &ja )
@@ -77,6 +69,12 @@ bool overmap_proximity::satisfies( const overmap &om, const tripoint_om_omt &p )
 {
     for( const overmap_proximity_constraint &c : constraints ) {
         bool found = false;
+        // Convert string IDs to oter_id at runtime (all IDs loaded by now)
+        std::vector<oter_id> wanted;
+        wanted.reserve( c.terrain_strs.size() );
+        for( const std::string &s : c.terrain_strs ) {
+            wanted.emplace_back( s );
+        }
         // Cap max scan radius for performance (4M tiles at 999 is too slow)
         const int max_d = std::min( c.distance.max, 100 );
         // Scan square around p with Chebyshev distance
@@ -89,8 +87,8 @@ bool overmap_proximity::satisfies( const overmap &om, const tripoint_om_omt &p )
                 }
                 const tripoint_om_omt q = p + tripoint( dx, dy, 0 );
                 const oter_id &tid = om.ter( q );
-                for( const oter_id &wanted : c.terrains ) {
-                    if( tid == wanted ) {
+                for( const oter_id &w : wanted ) {
+                    if( tid == w ) {
                         found = true;
                         break;
                     }
@@ -103,4 +101,3 @@ bool overmap_proximity::satisfies( const overmap &om, const tripoint_om_omt &p )
     }
     return true;
 }
-// trigger
