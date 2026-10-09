@@ -101,3 +101,4 @@ bool overmap_proximity::satisfies( const overmap &om, const tripoint_om_omt &p )
     }
     return true;
 }
+// trigger
