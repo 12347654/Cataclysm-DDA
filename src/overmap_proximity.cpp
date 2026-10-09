@@ -69,12 +69,6 @@ bool overmap_proximity::satisfies( const overmap &om, const tripoint_om_omt &p )
 {
     for( const overmap_proximity_constraint &c : constraints ) {
         bool found = false;
-        // Convert string IDs to oter_id at runtime (all IDs loaded by now)
-        std::vector<oter_id> wanted;
-        wanted.reserve( c.terrain_strs.size() );
-        for( const std::string &s : c.terrain_strs ) {
-            wanted.emplace_back( s );
-        }
         // Cap max scan radius for performance (4M tiles at 999 is too slow)
         const int max_d = std::min( c.distance.max, 100 );
         // Scan square around p with Chebyshev distance
@@ -86,9 +80,10 @@ bool overmap_proximity::satisfies( const overmap &om, const tripoint_om_omt &p )
                     continue;
                 }
                 const tripoint_om_omt q = p + tripoint( dx, dy, 0 );
-                const oter_id &tid = om.ter( q );
-                for( const oter_id &w : wanted ) {
-                    if( tid == w ) {
+                // Compare ID strings directly to avoid oter_id(string) validation issues
+                const std::string tid_str = om.ter( q ).id().str();
+                for( const std::string &wanted : c.terrain_strs ) {
+                    if( tid_str == wanted ) {
                         found = true;
                         break;
                     }
@@ -101,4 +96,3 @@ bool overmap_proximity::satisfies( const overmap &om, const tripoint_om_omt &p )
     }
     return true;
 }
-// trigger
